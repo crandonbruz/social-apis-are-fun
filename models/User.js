@@ -1,5 +1,4 @@
-const { Schema, model } = require('mongoose');
-const reactionSchema = require('./Reaction');
+const { Schema, model } = require("mongoose");
 
 // Schema to create Student model
 const userSchema = new Schema(
@@ -14,14 +13,19 @@ const userSchema = new Schema(
       required: true,
       match: [
         /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-        'Put a real email.'
+        "Put a real email.",
       ],
     },
     thoughts: {
       type: Schema.Types.ObjectId,
       ref: "Thought",
     },
-    reaction: [reactionSchema],
+    friends: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     toJSON: {
@@ -30,6 +34,10 @@ const userSchema = new Schema(
   }
 );
 
-const User = model('User', userSchema);
+userSchema.virtual("friendCount").get(function () {
+  return this.friends.length;
+});
+
+const User = model("User", userSchema);
 
 module.exports = User;

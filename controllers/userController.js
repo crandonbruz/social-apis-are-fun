@@ -1,28 +1,6 @@
 const { ObjectId } = require("mongoose").Types;
 const { User, Thought } = require("../models");
 
-// Aggregate function to get the number of users overall
-const headCount = async () => {
-  const numberOfUsers = await User.aggregate().count("userCount");
-  return numberOfUsers;
-};
-
-// Aggregate function for getting the overall grade using $avg
-const grade = async (userId) =>
-  User.aggregate([
-    // only include the given student by using $match
-    { $match: { _id: new ObjectId(userId) } },
-    {
-      $unwind: "$reactions",
-    },
-    {
-      $group: {
-        _id: new ObjectId(userId),
-        overallGrade: { $avg: "$assignments.score" },
-      },
-    },
-  ]);
-
 module.exports = {
   // Get all users
   async getUsers(req, res) {
@@ -69,6 +47,24 @@ module.exports = {
       res.status(500).json(err);
     }
   },
+  //Update User
+  async updateUser(req, res) {
+    try {
+      const user = await User.findOneAndUpdate(
+        { _id: req.params.userId },
+        { $set: req.body },
+        { runValidators: true, new: true }
+      );
+
+      if (!user) {
+        res.status(404).json({ message: "No thought with this id!" });
+      }
+
+      res.json(user);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  },
   // Delete a user and remove them from the thought
   async deleteUser(req, res) {
     try {
@@ -97,15 +93,15 @@ module.exports = {
     }
   },
 
-  // Add an reaction to a user
-  async addReaction(req, res) {
-    console.log("You are adding a Reaction");
+  // Add a friend to a user
+  async addFriend(req, res) {
+    console.log("New Friend Added");
     console.log(req.body);
 
     try {
       const user = await User.findOneAndUpdate(
         { _id: req.params.userId },
-        { $addToSet: { reactions: req.body } },
+        { $addToSet: { friends: req.params.friendId } },
         { runValidators: true, new: true }
       );
 
@@ -120,12 +116,13 @@ module.exports = {
       res.status(500).json(err);
     }
   },
-  // Remove reaction from a user
-  async removeReaction(req, res) {
+
+  // Remove friend from a user
+  async removeFriend(req, res) {
     try {
       const user = await User.findOneAndUpdate(
         { _id: req.params.userId },
-        { $pull: { reaction: { reactionId: req.params.reactionId } } },
+        { $pull: { friends: req.params.friendId } },
         { runValidators: true, new: true }
       );
 
