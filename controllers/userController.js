@@ -6,13 +6,7 @@ module.exports = {
   async getUsers(req, res) {
     try {
       const users = await User.find();
-
-      const userObj = {
-        users,
-        headCount: await headCount(),
-      };
-
-      res.json(userObj);
+      res.json(users);
     } catch (err) {
       console.log(err);
       return res.status(500).json(err);
@@ -31,7 +25,6 @@ module.exports = {
 
       res.json({
         user,
-        grade: await grade(req.params.userId),
       });
     } catch (err) {
       console.log(err);
